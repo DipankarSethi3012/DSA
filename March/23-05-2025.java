@@ -1,28 +1,76 @@
 class Solution {
-    public int countDays(int days, int[][] meetings) {
-        Arrays.sort(meetings, (a,b) -> {
-            if(a[0] != b[0]) return a[0] - b[0];
-            return a[1] - b[1];
-        });
-  
-        int count = 0, n = meetings.length;
-        int end = meetings[0][1];
-        if(meetings[0][0] != 1) {
-            count += meetings[0][0] - 1;
+    private final int MOD = (int)1e9 + 7;
+    public int countPaths(int n, int[][] roads) {
+        List<List<int[]>> adj = new ArrayList<>();
+        for(int i = 0; i < n; i++) {
+            adj.add(new ArrayList<>());
         }
-        for(int i = 1; i < meetings.length; i++) {
-            if(meetings[i][0] <= end + 1) {
-                end = Math.max(meetings[i][1], end);
-            } else{
-                count += meetings[i][0] - end - 1;
-                end = meetings[i][1];
+
+
+        for(int[] road : roads) {
+            int u = road[0];
+            int v = road[1];
+            int w = road[2];
+
+            adj.get(u).add(new int[]{v, w});
+            adj.get(v).add(new int[]{u, w});
+        }
+
+        long[] distance = dij(adj, n);
+        // System.out.println(Arrays.toString(distance));
+        boolean[] visited = new boolean[n];
+        long target = distance[n - 1];
+        int[] dp = new int[n];
+        
+            Arrays.fill(dp, -1);
+        
+        return f(0, distance, adj, 0, n, dp);
+    }
+
+    private long[] dij(List<List<int[]>> adj, int n) {
+        long[] dist = new long[n];
+        Arrays.fill(dist, Long.MAX_VALUE);
+        dist[0] = 0;
+
+        PriorityQueue<long[]> pq = new PriorityQueue<>((a, b) -> Long.compare(a[1], b[1]));
+        pq.offer(new long[]{0, 0});
+        while(!pq.isEmpty()) {
+            long[] curr = pq.poll();
+            int currNode = (int)curr[0];
+            long currDist = curr[1];
+
+            for(int[] nbr : adj.get(currNode)) {
+                int nbrNode = nbr[0];
+                int nbrDist = nbr[1];
+
+                if(currDist + nbrDist < dist[nbrNode]) {
+                    dist[nbrNode] = currDist + nbrDist;
+                    pq.offer(new long[]{nbrNode, dist[nbrNode]});
+                }
+            }
+        }
+        
+        return dist;
+    }
+
+   private int f(int node, long[] dist, List<List<int[]>> adj, long target, int n, int[] dp) {
+        if(node == n - 1) {
+            return 1;
+        }
+
+        if(dp[node] != -1) return dp[node];
+        int count = 0;
+
+        for(int[] nbr : adj.get(node)) {
+            int nbrNode = nbr[0];
+            int nbrDist = nbr[1];
+
+            if(target + nbrDist == dist[nbrNode]) {
+                count = (count + f(nbrNode, dist, adj, dist[nbrNode], n, dp)) % MOD;
             }
         }
 
-        if(end < days) {
-            count = count +  (days - end);
-        }
-
-        return count;
-    }
+        return dp[node] = (count % MOD);
+        
+   }
 }
