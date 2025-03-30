@@ -1,0 +1,41 @@
+class Solution {
+    public List<Integer> partitionLabels(String s) {
+        int n = s.length();
+        int[] first = new int[26];
+        Arrays.fill(first, -1);
+        int[] last = new int[26];
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < n; i++) {
+            char ch = s.charAt(i);
+            if(first[ch - 'a'] == -1) {
+                sb.append(ch);
+                first[ch - 'a'] = i;
+                last[ch - 'a'] = i;
+            } else{
+                last[ch - 'a'] = i;
+            }
+        }
+
+        List<Integer> parts = new ArrayList<>();
+   
+        int mini = first[sb.charAt(0) - 'a'];
+        int maxi = last[sb.charAt(0) - 'a'];
+
+       
+        for(int i = 1; i < sb.length(); i++) {
+            char ch = sb.charAt(i);
+            int minChar = first[ch - 'a'];
+            if(minChar > maxi) {
+                parts.add(maxi - mini + 1);
+                mini = first[ch - 'a'];
+                maxi = last[ch - 'a'];
+            } else{
+                mini = Math.min(mini, first[ch - 'a']);
+                maxi = Math.max(maxi, last[ch - 'a']);
+            }
+            
+        }
+        parts.add(maxi - mini  + 1);
+        return parts;
+    }
+}
